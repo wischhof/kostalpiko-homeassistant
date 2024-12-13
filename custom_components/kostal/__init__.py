@@ -107,7 +107,7 @@ class KostalInstance():
         self.hass.add_job(self._asyncadd_sensors(sensors, piko))
 
     async def _asyncadd_sensors(self, sensors, piko: PikoHolder):
-        await self.hass.config_entries.async_forward_entry_setup(self.config_entry, "sensor")
+        await self.hass.config_entries.async_forward_entry_setups(self.config_entry, ["sensor"])
         async_dispatcher_send(self.hass, "kostal_init_sensors", sensors, piko)
 
     async def clean(self):
