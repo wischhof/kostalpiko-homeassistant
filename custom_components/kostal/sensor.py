@@ -4,7 +4,7 @@ import logging, time
 from .piko_holder import PikoHolder
 
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
-from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
 from homeassistant.helpers.entity import Entity
@@ -14,25 +14,21 @@ from homeassistant.const import (
     CONF_PASSWORD,
     CONF_HOST,
     CONF_MONITORED_CONDITIONS,
-    DEVICE_CLASS_ENERGY,
-    ENERGY_KILO_WATT_HOUR,
+    UnitOfEnergy,
 )
 
 from homeassistant.components.sensor import (
-    STATE_CLASS_MEASUREMENT,
+    SensorDeviceClass,
     SensorEntity,
+    SensorStateClass,
 )
-try:
-    from homeassistant.components.sensor import STATE_CLASS_TOTAL_INCREASING
-except ImportError:
-    from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT as STATE_CLASS_TOTAL_INCREASING
 
 from .const import SENSOR_TYPES, MIN_TIME_BETWEEN_UPDATES, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry, async_add_entities):
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
     """Set up the sensor dynamically."""
     _LOGGER.info("Setting up kostal piko sensor")
     async def async_add_sensors(sensors, piko: PikoHolder):
@@ -57,7 +53,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry, async_a
 class PikoSensor(SensorEntity):
     """Representation of a Piko inverter value."""
 
-    def __init__(self,  hass: HomeAssistantType, piko: PikoHolder, sensor_type, info={None,None}, name=None):
+    def __init__(self,  hass: HomeAssistant, piko: PikoHolder, sensor_type, info={None,None}, name=None):
         """Initialize the sensor."""
         _LOGGER.debug("Initializing PikoSensor: %s", sensor_type)
         self._sensor = SENSOR_TYPES[sensor_type][0]
@@ -70,9 +66,9 @@ class PikoSensor(SensorEntity):
         self._icon = SENSOR_TYPES[self.type][2]
         self.serial_number = info[0]
         self.model = info[1]
-        if self._unit_of_measurement == ENERGY_KILO_WATT_HOUR:
-            self._attr_device_class = DEVICE_CLASS_ENERGY
-            self._attr_state_class = STATE_CLASS_TOTAL_INCREASING
+        if self._unit_of_measurement == UnitOfEnergy.KILO_WATT_HOUR:
+            self._attr_device_class = SensorDeviceClass.ENERGY
+            self._attr_state_class = SensorStateClass.TOTAL_INCREASING
 
     @property
     def name(self):
